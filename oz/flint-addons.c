@@ -36,7 +36,7 @@ void fmpz_mat_modp(fmpz_mat_t m, int dim, fmpz_t p) {
  */
 
 // uses gaussian elimination to obtain the determinant of a matrix
-void fmpz_mat_det_modp(fmpz_t det, fmpz_mat_t a, int n, fmpz_t p) {
+static void fmpz_mat_det_modp(fmpz_t det, fmpz_mat_t a, int n, fmpz_t p) {
   assert(n >= 1);
 
   if(n == 1) {
@@ -133,7 +133,7 @@ void fmpz_mat_det_modp(fmpz_t det, fmpz_mat_t a, int n, fmpz_t p) {
 /*
    Find the cofactor matrix of a square matrix
 */
-void fmpz_mat_cofactor_modp(fmpz_mat_t b, fmpz_mat_t a, int n, fmpz_t p) {
+static void fmpz_mat_cofactor_modp(fmpz_mat_t b, fmpz_mat_t a, int n, fmpz_t p) {
   int i,j,ii,jj,i1,j1;
 
   fmpz_t det;
@@ -177,36 +177,39 @@ void fmpz_mat_cofactor_modp(fmpz_mat_t b, fmpz_mat_t a, int n, fmpz_t p) {
 }
 
 int fmpz_modp_matrix_inverse(fmpz_mat_t inv, fmpz_mat_t a, int dim, fmpz_t p) {
-  fmpz_t det;
-  fmpz_init(det);
-  /* TODO: check if the determinant is zero */
-  fmpz_mat_det_modp(det, a, dim, p);
-  if(0 == fmpz_sgn(det)) {
-    fmpz_clear(det);
-    return 1;
-  }
-  fmpz_mat_t cofactor;
-  fmpz_mat_init(cofactor, dim, dim);
-  fmpz_mat_cofactor_modp(cofactor, a, dim, p);
+  if (dim == 1) {
+      fmpz_set(fmpz_mat_entry(inv,0,0), fmpz_mat_entry(a, 0, 0));
+  } else {
+      fmpz_t det;
+      fmpz_init(det);
+      /* TODO: check if the determinant is zero */
+      fmpz_mat_det_modp(det, a, dim, p);
+      if(0 == fmpz_sgn(det)) {
+          fmpz_clear(det);
+          return 1;
+      }
+      fmpz_mat_t cofactor;
+      fmpz_mat_init(cofactor, dim, dim);
+      fmpz_mat_cofactor_modp(cofactor, a, dim, p);
 
-  fmpz_t invmod;
-  fmpz_init(invmod);
-  fmpz_invmod(invmod, det, p);
-  fmpz_t tmp;
-  fmpz_init(tmp);
-  for(int i = 0; i < dim; i++) {
-    for(int j = 0; j < dim; j++) {
-      fmpz_mod(tmp, fmpz_mat_entry(cofactor, j, i), p);
-      fmpz_mul(tmp, tmp, invmod);
-      fmpz_mod(tmp, tmp, p);
-      fmpz_set(fmpz_mat_entry(inv,i,j), tmp);
-    }
+      fmpz_t invmod;
+      fmpz_init(invmod);
+      fmpz_invmod(invmod, det, p);
+      fmpz_t tmp;
+      fmpz_init(tmp);
+      for(int i = 0; i < dim; i++) {
+          for(int j = 0; j < dim; j++) {
+              fmpz_mod(tmp, fmpz_mat_entry(cofactor, j, i), p);
+              fmpz_mul(tmp, tmp, invmod);
+              fmpz_mod(tmp, tmp, p);
+              fmpz_set(fmpz_mat_entry(inv,i,j), tmp);
+          }
+      }
+      fmpz_clear(tmp);
+      fmpz_clear(invmod);
+      fmpz_mat_clear(cofactor);
+      fmpz_clear(det);
   }
-  fmpz_clear(tmp);
-  fmpz_clear(invmod);
-
-  fmpz_clear(det);
-  fmpz_mat_clear(cofactor);
   return 0;
 }
 
