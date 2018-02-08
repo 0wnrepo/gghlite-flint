@@ -137,7 +137,6 @@ void dgsl_rot_mp_clear(dgsl_rot_mp_t *self);
 
 static inline void fmpz_mod_poly_sample_D(fmpz_mod_poly_t f, dgsl_rot_mp_t *D, aes_randstate_t randstate) {
   assert(D);
-  assert(randstate->aes_init);
 
   fmpz_poly_t tmp;
   fmpz_poly_init(tmp);
@@ -148,12 +147,12 @@ static inline void fmpz_mod_poly_sample_D(fmpz_mod_poly_t f, dgsl_rot_mp_t *D, a
 }
 
 static inline void fmpz_poly_sample_D(fmpz_poly_t f, dgsl_rot_mp_t *D, aes_randstate_t randstate) {
-  assert(D); assert(randstate->aes_init);
+  assert(D);
   D->call(f, D, randstate);
 }
 
 static inline void fmpz_poly_sample_D_plus1(fmpz_poly_t f, dgsl_rot_mp_t *D, aes_randstate_t randstate) {
-  assert(D); assert(randstate->aes_init);
+  assert(D);
   assert(D->call == dgsl_rot_mp_call_inlattice);
   dgsl_rot_mp_call_plus1(f, D, randstate);
 }
